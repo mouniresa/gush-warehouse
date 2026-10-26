@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker';
 
 void main() {
   runApp(const GushWarehouseApp());
@@ -8,7 +8,7 @@ void main() {
 
 /// Gush Global Color Palette
 class GushColors {
-  static const Color primary = Color(0xFF7D1BFF); // Gush signature purple
+  static const Color primary = Color(0xFF7D1BFF);
   static const Color primaryDark = Color(0xFF5A08C9);
   static const Color background = Color(0xFFF7F8FA);
   static const Color card = Colors.white;
@@ -18,7 +18,7 @@ class GushColors {
   static const Color stockOutRed = Color(0xFFEF4444);
 }
 
-/// Simple Localization Dictionary
+/// Localization Dictionary (EN & ZH)
 class AppStrings {
   static const Map<String, Map<String, String>> localizedValues = {
     'en': {
@@ -41,7 +41,6 @@ class AppStrings {
       'qty_to_change': 'Enter quantity:',
       'insufficient_stock': 'Cannot stock out: Quantity exceeds current stock!',
       'no_products': 'No products in warehouse yet. Tap "+" to add one.',
-      'photo_required': 'Please select an image',
       'field_required': 'This field is required',
     },
     'zh': {
@@ -64,7 +63,6 @@ class AppStrings {
       'qty_to_change': '请输入操作数量：',
       'insufficient_stock': '出库失败：出库数量大于现有库存！',
       'no_products': '仓库暂无商品，点击右下角 “+” 添加',
-      'photo_required': '请选择商品图片',
       'field_required': '此项为必填项',
     },
   };
@@ -98,7 +96,7 @@ class GushWarehouseApp extends StatefulWidget {
 }
 
 class _GushWarehouseAppState extends State<GushWarehouseApp> {
-  String _currentLang = 'en'; // Default English
+  String _currentLang = 'en';
 
   void _toggleLanguage() {
     setState(() {
@@ -113,7 +111,6 @@ class _GushWarehouseAppState extends State<GushWarehouseApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: GushColors.background,
-        fontFamily: 'Roboto',
         colorScheme: ColorScheme.fromSeed(seedColor: GushColors.primary),
         useMaterial3: true,
       ),
@@ -145,7 +142,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
 
   String t(String key) => AppStrings.get(key, widget.lang);
 
-  // Quick In / Out Stock logic
   void _updateStock(Product product, int delta) {
     if (delta < 0 && product.quantity + delta < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -248,7 +244,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
         elevation: 0,
         title: Row(
           children: [
-            // Gush stylized logo circle
             Container(
               padding: const EdgeInsets.all(4),
               decoration: const BoxDecoration(
@@ -265,7 +260,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
           ],
         ),
         actions: [
-          // Language Switcher Button
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             child: OutlinedButton(
@@ -286,7 +280,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
       ),
       body: Column(
         children: [
-          // Top Statistics Banner
           Container(
             color: GushColors.primary,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -302,8 +295,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
               ],
             ),
           ),
-
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
@@ -322,8 +313,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
               ),
             ),
           ),
-
-          // Product List
           Expanded(
             child: filtered.isEmpty
                 ? Center(
@@ -383,7 +372,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Product Image Thumbnail
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Container(
@@ -400,8 +388,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
               ),
             ),
             const SizedBox(width: 14),
-
-            // Product Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -409,7 +395,7 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
                   Text(
                     item.name,
                     maxLines: 1,
-                    overflow: TextNavigatorState == null ? TextOverflow.ellipsis : TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: GushColors.textDark),
                   ),
                   const SizedBox(height: 4),
@@ -429,8 +415,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
                 ],
               ),
             ),
-
-            // In / Out Quick Action Buttons
             Column(
               children: [
                 SizedBox(
@@ -469,7 +453,6 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
   }
 }
 
-/// Modal Sheet to Add Product with Camera or Gallery Picture
 class AddProductSheet extends StatefulWidget {
   final String lang;
   final Function(Product) onProductAdded;
@@ -534,8 +517,6 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GushColors.textDark),
               ),
               const SizedBox(height: 16),
-
-              // Image Selector Preview
               Center(
                 child: GestureDetector(
                   onTap: () => _showImageSourcePicker(),
@@ -568,85 +549,7 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Product Name Field
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: t('product_name'),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                validator: (val) => val == null || val.isEmpty ? t('field_required') : null,
-              ),
-              const SizedBox(height: 12),
-
-              // SKU Field
-              TextFormField(
-                controller: _skuController,
-                decoration: InputDecoration(
-                  labelText: t('sku'),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                validator: (val) => val == null || val.isEmpty ? t('field_required') : null,
-              ),
-              const SizedBox(height: 12),
-
-              // Initial Qty Field
-              TextFormField(
-                controller: _qtyController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: t('initial_qty'),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Save Button
-              ElevatedButton(
-                onPressed: _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GushColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text(
-                  t('save'),
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showImageSourcePicker() {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: GushColors.primary),
-              title: Text(t('take_photo')),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: GushColors.primary),
-              title: Text(t('choose_gallery')),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
