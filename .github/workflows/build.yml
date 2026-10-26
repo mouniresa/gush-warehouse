@@ -26,8 +26,9 @@ jobs:
           flutter create --org com.gush --project-name gush_warehouse app
           cd app
           flutter pub add image_picker
+          flutter pub add shared_preferences
           cp ../lib/main.dart lib/main.dart
-          flutter build apk --release
+          flutter build apk --debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
