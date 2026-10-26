@@ -1,1 +1,32 @@
 
+name: Build Gush Warehouse APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Build Android APK
+        run: |
+          flutter create --org com.gush --project-name gush_warehouse app
+          cd app
+          flutter pub add image_picker
+          cp ../lib/main.dart lib/main.dart
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' android/app/src/main/AndroidManifest.xml
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GushWarehouse-APK
+          path: app/build/app/outputs/flutter-apk/app-release.apk
