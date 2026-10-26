@@ -1,24 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const GushWarehouseApp());
 }
 
-/// Gush Global Color Palette
 class GushColors {
   static const Color primary = Color(0xFF7D1BFF);
-  static const Color primaryDark = Color(0xFF5A08C9);
   static const Color background = Color(0xFFF7F8FA);
-  static const Color card = Colors.white;
   static const Color textDark = Color(0xFF111827);
   static const Color textMuted = Color(0xFF6B7280);
   static const Color stockInGreen = Color(0xFF10B981);
   static const Color stockOutRed = Color(0xFFEF4444);
 }
 
-/// Localization Dictionary (EN & ZH)
 class AppStrings {
   static const Map<String, Map<String, String>> localizedValues = {
     'en': {
@@ -86,6 +84,22 @@ class Product {
     required this.quantity,
     this.imagePath,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'sku': sku,
+    'quantity': quantity,
+    'imagePath': imagePath,
+  };
+
+  factory Product.fromJson(Map<String, dynamic> json) => Product(
+    id: json['id'] ?? '',
+    name: json['name'] ?? '',
+    sku: json['sku'] ?? '',
+    quantity: json['quantity'] ?? 0,
+    imagePath: json['imagePath'],
+  );
 }
 
 class GushWarehouseApp extends StatefulWidget {
@@ -137,8 +151,33 @@ class WarehouseHomeScreen extends StatefulWidget {
 }
 
 class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
-  final List<Product> _products = [];
+  List<Product> _products = [];
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoredData();
+  }
+
+  // Load saved warehouse data from phone storage
+  Future<void> _loadStoredData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? data = prefs.getString('gush_warehouse_data');
+    if (data != null) {
+      final List decoded = jsonDecode(data);
+      setState(() {
+        _products = decoded.map((e) => Product.fromJson(e)).toList();
+      });
+    }
+  }
+
+  // Save warehouse data permanently to phone storage
+  Future<void> _saveStoredData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_products.map((e) => e.toJson()).toList());
+    await prefs.setString('gush_warehouse_data', encoded);
+  }
 
   String t(String key) => AppStrings.get(key, widget.lang);
 
@@ -155,6 +194,7 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
     setState(() {
       product.quantity += delta;
     });
+    _saveStoredData();
   }
 
   void _showStockDialog(Product product, bool isStockIn) {
@@ -224,6 +264,7 @@ class _WarehouseHomeScreenState extends State<WarehouseHomeScreen> {
           setState(() {
             _products.insert(0, newProd);
           });
+          _saveStoredData();
         },
       ),
     );
@@ -553,3 +594,49 @@ class _AddProductSheetState extends State<AddProductSheet> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: t('product_name'),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (val) => val == null || val.isEmpty ? t('field_required') : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _skuController,
+                decoration: InputDecoration(
+                  labelText: t('sku'),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                validator: (val) => val == null || val.isEmpty ? t('field_required') : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _qtyController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: t('initial_qty'),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GushColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text(
+                  t('save'),
+                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showImageSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => S
